@@ -68,7 +68,7 @@ export class AzureDevOpsService {
    */
   async getProjects(): Promise<AzureDevOpsProject[]> {
     try {
-      const url = `${this.baseUrl}/projects?api-version=7.0`;
+      const url = `${this.baseUrl}/projects?api-version=6.0`;
       const response = await this.makeRequest<AzureDevOpsApiResponse<AzureDevOpsProject>>(url);
       return response.value;
     } catch (error) {
@@ -82,7 +82,7 @@ export class AzureDevOpsService {
    */
   async getTestPlans(projectId: string): Promise<AzureDevOpsTestPlan[]> {
     try {
-      const url = `${this.baseUrl}/testplan/plans?api-version=7.0`;
+      const url = `${this.baseUrl}/testplan/plans?api-version=6.0`;
       const response = await this.makeRequest<AzureDevOpsApiResponse<AzureDevOpsTestPlan>>(url, projectId);
       return response.value;
     } catch (error) {
@@ -99,7 +99,7 @@ export class AzureDevOpsService {
    */
   async getTestSuites(projectId: string, testPlanId: number): Promise<AzureDevOpsTestSuite[]> {
     try {
-      const url = `${this.baseUrl}/testplan/Plans/${testPlanId}/suites?api-version=7.0`;
+      const url = `${this.baseUrl}/testplan/Plans/${testPlanId}/suites?api-version=6.0`;
       const response = await this.makeRequest<AzureDevOpsApiResponse<AzureDevOpsTestSuite>>(url, projectId);
       return response.value;
     } catch (error) {
@@ -117,7 +117,7 @@ export class AzureDevOpsService {
    */
   async getTestCases(projectId: string, testPlanId: number, testSuiteId: number): Promise<AzureDevOpsTestCase[]> {
     try {
-      const url = `${this.baseUrl}/testplan/Plans/${testPlanId}/Suites/${testSuiteId}/TestCase?api-version=7.0`;
+      const url = `${this.baseUrl}/testplan/Plans/${testPlanId}/Suites/${testSuiteId}/TestCase?api-version=6.0`;
       const response = await this.makeRequest<AzureDevOpsApiResponse<AzureDevOpsTestCase>>(url, projectId);
       return response.value;
     } catch (error) {
@@ -136,7 +136,7 @@ export class AzureDevOpsService {
    */
   async getTestCaseDetails(projectId: string, testCaseId: number): Promise<AzureDevOpsTestCase> {
     try {
-      const url = `${this.baseUrl}/wit/workitems/${testCaseId}?api-version=7.0&$expand=all`;
+      const url = `${this.baseUrl}/wit/workitems/${testCaseId}?api-version=6.0&$expand=all`;
       const response = await this.makeRequest<AzureDevOpsTestCase>(url, projectId);
       return response;
     } catch (error) {

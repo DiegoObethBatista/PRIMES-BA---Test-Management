@@ -77,10 +77,6 @@ export function HomePage(): JSX.Element {
     navigate('/settings');
   };
 
-  const handleNavigateToAzureDevOps = (): void => {
-    navigate('/azure-devops');
-  };
-
   if (isLoading) {
     return <Loading message="Checking system status..." />;
   }
@@ -175,25 +171,6 @@ export function HomePage(): JSX.Element {
                 <div style={{ marginTop: '16px' }}>
                   <Button appearance="primary">
                     Open Settings
-                  </Button>
-                </div>
-              </div>
-            }
-          />
-        </Card>
-
-        <Card className={styles.statusCard} onClick={handleNavigateToAzureDevOps}>
-          <CardPreview>
-            <CloudRegular className={styles.icon} />
-          </CardPreview>
-          <CardHeader
-            header={<Text weight="semibold">Azure DevOps Integration</Text>}
-            description={
-              <div>
-                <Text>Connect to Azure DevOps and import test cases from your test plans.</Text>
-                <div style={{ marginTop: '16px' }}>
-                  <Button appearance="primary">
-                    Azure DevOps
                   </Button>
                 </div>
               </div>

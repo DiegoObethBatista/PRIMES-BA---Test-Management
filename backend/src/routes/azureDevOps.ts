@@ -24,9 +24,62 @@ export function createAzureDevOpsRouter(dbManager: DatabaseManager, environment:
   const router = Router();
   const azureDevOpsService = new AzureDevOpsService(environment);
 
-  // POST /api/azure-devops/test-connection - Test Azure DevOps connection
+  // POST /api/azure-devops/test-connection - Test Azure DevOps connection with current settings
   router.post(
     '/test-connection',
+    async (req: Request, res: Response<AzureDevOpsConnectionResponse>) => {
+      try {
+        // If body has connection details, use those for testing
+        if (req.body && req.body.orgUrl && req.body.project && req.body.pat) {
+          const { orgUrl, project, pat } = req.body as AzureDevOpsConnectionRequest;
+          
+          // Create temporary service instance for testing
+          const tempEnvironment = { ...environment, ADO_ORG_URL: orgUrl, ADO_PROJECT: project, ADO_PAT: pat };
+          const tempService = new AzureDevOpsService(tempEnvironment);
+          
+          const connectionTest = await tempService.testConnection();
+          
+          logger.info('Azure DevOps connection test completed', { 
+            success: connectionTest.success,
+            organizationName: connectionTest.organizationName,
+            projectName: connectionTest.projectName 
+          });
+
+          res.json({
+            success: true,
+            data: connectionTest,
+          });
+        } else {
+          // Test with current environment settings
+          const connectionTest = await azureDevOpsService.testConnection();
+          
+          logger.info('Azure DevOps connection test completed with environment settings', { 
+            success: connectionTest.success,
+            organizationName: connectionTest.organizationName,
+            projectName: connectionTest.projectName 
+          });
+
+          res.json({
+            success: true,
+            data: connectionTest,
+          });
+        }
+      } catch (error) {
+        logger.error('Azure DevOps connection test failed', { 
+          error: error instanceof Error ? error.message : 'Unknown error' 
+        });
+        
+        res.status(500).json({
+          success: false,
+          error: `Connection test failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        });
+      }
+    }
+  );
+
+  // POST /api/azure-devops/test-connection-with-config - Test Azure DevOps connection with provided config
+  router.post(
+    '/test-connection-with-config',
     [
       body('orgUrl').isURL().withMessage('Organization URL must be a valid URL'),
       body('project').isString().notEmpty().withMessage('Project name is required'),
@@ -43,7 +96,7 @@ export function createAzureDevOpsRouter(dbManager: DatabaseManager, environment:
         
         const connectionTest = await tempService.testConnection();
         
-        logger.info('Azure DevOps connection test completed', { 
+        logger.info('Azure DevOps connection test completed with provided config', { 
           success: connectionTest.success,
           organizationName: connectionTest.organizationName,
           projectName: connectionTest.projectName 
@@ -54,11 +107,14 @@ export function createAzureDevOpsRouter(dbManager: DatabaseManager, environment:
           data: connectionTest,
         });
       } catch (error) {
-        logger.error('Azure DevOps connection test failed', { 
+        logger.error('Azure DevOps connection test with config failed', { 
           error: error instanceof Error ? error.message : 'Unknown error' 
         });
         
-        throw new Error(`Connection test failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        res.status(500).json({
+          success: false,
+          error: `Connection test failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        });
       }
     }
   );

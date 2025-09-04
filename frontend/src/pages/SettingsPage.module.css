@@ -1,0 +1,74 @@
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.section {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.sectionHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.formGrid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding-top: 8px;
+  border-top: 1px solid var(--colorNeutralStroke2);
+}
+
+.projectList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.projectItem {
+  padding: 12px;
+  border: 1px solid var(--colorNeutralStroke2);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background-color: var(--colorNeutralBackground2);
+}
+
+.projectItem:hover {
+  background-color: var(--colorNeutralBackground2Hover);
+  border-color: var(--colorNeutralStroke1Hover);
+}
+
+@media (min-width: 768px) {
+  .formGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .formGrid > div:last-child {
+    grid-column: 1 / -1;
+  }
+}

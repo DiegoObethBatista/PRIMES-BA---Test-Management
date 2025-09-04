@@ -1,15 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   FluentProvider,
   webLightTheme,
   Text,
   makeStyles,
   shorthands,
-  Card
+  Card,
+  Button,
+  MessageBar
 } from '@fluentui/react-components';
-import type { AzureDevOpsConnectionTest, AzureDevOpsImportResult } from '@primes-ba/shared';
-import { AzureDevOpsConfigForm } from '../components/AzureDevOpsConfigForm';
-import { TestPlanImport } from '../components/TestPlanImport';
+import { ArrowLeft24Regular, Settings24Regular, CheckmarkCircle24Regular } from '@fluentui/react-icons';
+import { useNavigate } from 'react-router-dom';
+import type { AzureDevOpsConnectionTest } from '@primes-ba/shared';
 
 const useStyles = makeStyles({
   page: {
@@ -54,29 +56,76 @@ const useStyles = makeStyles({
   },
   stepInactive: {
     backgroundColor: '#a19f9d',
+  },
+  backButton: {
+    marginBottom: '16px',
+  },
+  summaryStats: {
+    marginTop: '16px',
+  },
+  configCard: {
+    ...shorthands.padding('20px'),
+  },
+  buttonSpacing: {
+    marginTop: '12px',
+  },
+  connectionCheck: {
+    marginTop: '16px',
   }
 });
 
 export const AzureDevOpsPage: React.FC = () => {
   const styles = useStyles();
+  const navigate = useNavigate();
   
   const [connectionTest, setConnectionTest] = useState<AzureDevOpsConnectionTest | null>(null);
-  const [importResult, setImportResult] = useState<AzureDevOpsImportResult | null>(null);
+  const [isChecking, setIsChecking] = useState(false);
 
-  const handleConnectionSuccess = (result: AzureDevOpsConnectionTest) => {
-    setConnectionTest(result);
+  // Check connection status on component mount
+  useEffect(() => {
+    checkConnection();
+  }, []);
+
+  const checkConnection = async () => {
+    setIsChecking(true);
+    try {
+      const response = await fetch('/api/azure-devops/test-connection', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      const result = await response.json();
+      if (result.success && result.data) {
+        setConnectionTest(result.data);
+      } else {
+        setConnectionTest({ success: false, error: result.error || 'Connection failed' });
+      }
+    } catch (error) {
+      setConnectionTest({ success: false, error: 'Failed to check connection' });
+    } finally {
+      setIsChecking(false);
+    }
   };
 
-  const handleImportComplete = (result: AzureDevOpsImportResult) => {
-    setImportResult(result);
+  const handleBackToHome = () => {
+    navigate('/');
   };
 
   const isConnected = connectionTest?.success === true;
-  const hasImported = importResult?.success === true;
 
   return (
     <FluentProvider theme={webLightTheme}>
       <div className={styles.page}>
+        <Button
+          className={styles.backButton}
+          appearance="subtle"
+          icon={<ArrowLeft24Regular />}
+          onClick={handleBackToHome}
+        >
+          Back to Home
+        </Button>
+        
         <Card className={styles.header}>
           <Text size={700} weight="bold">
             Azure DevOps Integration
@@ -87,79 +136,68 @@ export const AzureDevOpsPage: React.FC = () => {
         </Card>
 
         <div className={styles.content}>
-          {/* Step 1: Configuration */}
+          {/* Step 1: Check Connection */}
           <div>
             <div className={styles.stepIndicator}>
               <div className={`${styles.stepNumber} ${isConnected ? styles.stepComplete : ''}`}>
                 1
               </div>
               <Text size={500} weight="semibold">
-                Configure Azure DevOps Connection
+                Azure DevOps Connection Status
               </Text>
             </div>
             
-            <AzureDevOpsConfigForm 
-              onConnectionSuccess={handleConnectionSuccess}
-            />
+            <Card className={styles.configCard}>
+              {!isConnected && (
+                <MessageBar intent="warning">
+                  Azure DevOps is not configured or connection failed. Please configure your connection in Settings.
+                  <div className={styles.buttonSpacing}>
+                    <Button 
+                      appearance="primary" 
+                      icon={<Settings24Regular />}
+                      onClick={() => navigate('/settings')}
+                    >
+                      Go to Settings
+                    </Button>
+                  </div>
+                </MessageBar>
+              )}
+              
+              {isConnected && (
+                <MessageBar intent="success" icon={<CheckmarkCircle24Regular />}>
+                  Connected to Azure DevOps successfully! Ready to import test cases.
+                </MessageBar>
+              )}
+              
+              <div className={styles.connectionCheck}>
+                <Button 
+                  appearance="subtle"
+                  onClick={checkConnection}
+                  disabled={isChecking}
+                >
+                  {isChecking ? 'Checking Connection...' : 'Check Connection'}
+                </Button>
+              </div>
+            </Card>
           </div>
 
-          {/* Step 2: Import Test Cases */}
+          {/* Step 2: Import Instructions */}
           {isConnected && (
             <div>
               <div className={styles.stepIndicator}>
-                <div className={`${styles.stepNumber} ${hasImported ? styles.stepComplete : ''}`}>
+                <div className={styles.stepNumber}>
                   2
                 </div>
                 <Text size={500} weight="semibold">
-                  Import Test Cases
+                  Test Case Import
                 </Text>
               </div>
               
-              <TestPlanImport
-                projectId={connectionTest?.projectName || ''}
-                projectName={connectionTest?.projectName || ''}
-                onImportComplete={handleImportComplete}
-              />
-            </div>
-          )}
-
-          {/* Step 3: Summary */}
-          {hasImported && (
-            <div>
-              <div className={styles.stepIndicator}>
-                <div className={`${styles.stepNumber} ${styles.stepComplete}`}>
-                  3
-                </div>
-                <Text size={500} weight="semibold">
-                  Import Complete
-                </Text>
-              </div>
-              
-              <Card style={{ padding: '24px' }}>
-                <Text size={400} weight="semibold">
-                  Import Summary
-                </Text>
-                <br />
-                <Text>
-                  Successfully completed import from Azure DevOps. 
-                  You can now view and manage your test cases in the Test Cases section.
-                </Text>
-                
-                {importResult && (
-                  <div style={{ marginTop: '16px' }}>
-                    <Text size={300}>
-                      • Total Test Cases: {importResult.progress.totalTestCases}
-                      <br />
-                      • Imported: {importResult.progress.importedTestCases}
-                      <br />
-                      • Updated: {importResult.progress.updatedTestCases}
-                      <br />
-                      • Skipped: {importResult.progress.skippedTestCases}
-                      <br />
-                      • Failed: {importResult.progress.failedTestCases}
-                    </Text>
-                  </div>
-                )}
+              <Card className={styles.configCard}>
+                <MessageBar intent="info">
+                  Connection is ready! Test case import functionality will be available in a future version.
+                  For now, you can configure and test your Azure DevOps connection in Settings.
+                </MessageBar>
               </Card>
             </div>
           )}
