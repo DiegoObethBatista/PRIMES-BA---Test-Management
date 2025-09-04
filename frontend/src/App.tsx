@@ -2,9 +2,12 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { FluentProvider, webLightTheme } from '@fluentui/react-components';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { HomePage } from './pages/HomePage';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { LoginPage } from './pages/LoginPage';
+import { DashboardPage } from './pages/DashboardPage';
+import { TestPlansPage } from './pages/TestPlansPage';
 import { SettingsPage } from './pages/SettingsPage';
-import { AzureDevOpsPage } from './pages/AzureDevOpsPage';
 import { validateConfig } from './utils/config';
 
 // Create a query client for React Query
@@ -17,6 +20,51 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+// Component to handle root routing based on auth state
+function AppRoutes(): JSX.Element {
+  const { isAuthenticated } = useAuth();
+
+  return (
+    <Routes>
+      <Route 
+        path="/login" 
+        element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />} 
+      />
+      <Route 
+        path="/dashboard" 
+        element={
+          <ProtectedRoute>
+            <DashboardPage />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/test-plans" 
+        element={
+          <ProtectedRoute>
+            <TestPlansPage />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/settings" 
+        element={
+          <ProtectedRoute>
+            <SettingsPage />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/" 
+        element={
+          isAuthenticated ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />
+        } 
+      />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+}
 
 /**
  * Main App component
@@ -33,14 +81,11 @@ export function App(): JSX.Element {
     <ErrorBoundary>
       <FluentProvider theme={webLightTheme}>
         <QueryClientProvider client={queryClient}>
-          <Router>
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/settings" element={<SettingsPage />} />
-              <Route path="/azure-devops" element={<AzureDevOpsPage />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </Router>
+          <AuthProvider>
+            <Router>
+              <AppRoutes />
+            </Router>
+          </AuthProvider>
         </QueryClientProvider>
       </FluentProvider>
     </ErrorBoundary>

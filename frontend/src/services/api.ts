@@ -128,8 +128,33 @@ class ApiClient {
   /**
    * Get Azure DevOps test plans
    */
-  async getAzureDevOpsTestPlans(projectId: string): Promise<AzureDevOpsTestPlansResponse> {
-    return this.get(`/azure-devops/test-plans?projectId=${encodeURIComponent(projectId)}`);
+  async getAzureDevOpsTestPlans(
+    projectId: string, 
+    options?: {
+      testPlanId?: number;
+      search?: string;
+      skip?: number;
+      top?: number;
+    }
+  ): Promise<AzureDevOpsTestPlansResponse> {
+    const params = new URLSearchParams({
+      projectId: projectId,
+    });
+
+    if (options?.testPlanId) {
+      params.append('testPlanId', options.testPlanId.toString());
+    }
+    if (options?.search) {
+      params.append('search', options.search);
+    }
+    if (options?.skip !== undefined) {
+      params.append('skip', options.skip.toString());
+    }
+    if (options?.top !== undefined) {
+      params.append('top', options.top.toString());
+    }
+
+    return this.get(`/azure-devops/test-plans?${params.toString()}`);
   }
 
   /**

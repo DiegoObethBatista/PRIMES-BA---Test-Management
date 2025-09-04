@@ -78,16 +78,73 @@ export class AzureDevOpsService {
   }
 
   /**
-   * Get test plans for a project
+   * Get a specific test plan by ID
    */
-  async getTestPlans(projectId: string): Promise<AzureDevOpsTestPlan[]> {
+  async getTestPlan(projectId: string, testPlanId: number): Promise<AzureDevOpsTestPlan | null> {
     try {
-      const url = `${this.baseUrl}/testplan/plans?api-version=6.0`;
+      const url = `${this.baseUrl}/testplan/plans/${testPlanId}?api-version=6.0`;
+      const response = await this.makeRequest<AzureDevOpsTestPlan>(url, projectId);
+      return response;
+    } catch (error) {
+      logger.error('Failed to fetch Azure DevOps test plan', { 
+        projectId, 
+        testPlanId,
+        error: this.formatError(error) 
+      });
+      // Return null if test plan not found, throw for other errors
+      if (this.formatError(error).code === 'NotFoundError') {
+        return null;
+      }
+      throw this.formatError(error);
+    }
+  }
+
+  /**
+   * Get test plans for a project with search and pagination
+   */
+  async getTestPlans(
+    projectId: string, 
+    options?: {
+      search?: string;
+      skip?: number;
+      top?: number;
+    }
+  ): Promise<{ testPlans: AzureDevOpsTestPlan[]; totalCount: number; skip: number; top: number }> {
+    try {
+      const { search, skip = 0, top = 50 } = options || {};
+      
+      // Build query parameters - Azure DevOps Test Plans API doesn't support $skip/$top
+      // So we'll fetch all and paginate server-side
+      const params = new URLSearchParams({
+        'api-version': '7.1',
+        'includePlanDetails': 'true', // Include area path, iteration path, and other details
+      });
+
+      // Add search filter if provided
+      if (search) {
+        params.append('$filter', `name contains '${search}'`);
+      }
+
+      const url = `${this.baseUrl}/testplan/plans?${params.toString()}`;
       const response = await this.makeRequest<AzureDevOpsApiResponse<AzureDevOpsTestPlan>>(url, projectId);
-      return response.value;
+      
+      // Sort by ID descending (highest ID first - newest test plans)
+      const sortedTestPlans = response.value.sort((a, b) => b.id - a.id);
+      
+      // Apply pagination server-side since Azure DevOps API doesn't support it
+      const totalCount = sortedTestPlans.length;
+      const paginatedTestPlans = sortedTestPlans.slice(skip, skip + top);
+      
+      return {
+        testPlans: paginatedTestPlans,
+        totalCount,
+        skip,
+        top,
+      };
     } catch (error) {
       logger.error('Failed to fetch Azure DevOps test plans', { 
         projectId, 
+        options,
         error: this.formatError(error) 
       });
       throw this.formatError(error);
@@ -228,7 +285,7 @@ export class AzureDevOpsService {
    * Get organization information
    */
   private async getOrganizationInfo(): Promise<{ name: string }> {
-    const url = `${this.config.orgUrl}/_apis/connectionData?api-version=7.0`;
+    const url = `${this.config.orgUrl}/_apis/connectionData?api-version=6.0`;
     const response = await this.makeRequest<{ authenticatedUser: { displayName: string } }>(url);
     
     // Extract organization name from URL
@@ -241,7 +298,7 @@ export class AzureDevOpsService {
    * Get project information
    */
   private async getProjectInfo(): Promise<AzureDevOpsProject> {
-    const url = `${this.baseUrl}/projects/${this.config.project}?api-version=7.0`;
+    const url = `${this.baseUrl}/projects/${this.config.project}?api-version=6.0`;
     return await this.makeRequest<AzureDevOpsProject>(url);
   }
 

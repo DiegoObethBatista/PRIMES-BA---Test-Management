@@ -24,14 +24,15 @@ export interface AzureDevOpsTestPlan {
   id: number;
   name: string;
   description?: string;
-  owner: {
+  areaPath: string;
+  iteration: string;
+  owner?: {
     displayName: string;
     id: string;
-  };
+  } | null;
   state: 'Inactive' | 'Active';
   startDate?: string;
   endDate?: string;
-  iteration?: string;
   buildDefinition?: {
     id: string;
     name: string;

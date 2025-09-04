@@ -102,10 +102,21 @@ export type AzureDevOpsConnectionResponse = ApiResponse<AzureDevOpsConnectionTes
 export type AzureDevOpsProjectsResponse = ApiResponse<AzureDevOpsProject[]>;
 
 export interface AzureDevOpsTestPlansQuery {
-  projectId: string;
+  projectId?: string;
+  testPlanId?: number;
+  search?: string;
+  skip?: number;
+  top?: number;
 }
 
-export type AzureDevOpsTestPlansResponse = ApiResponse<AzureDevOpsTestPlan[]>;
+export interface AzureDevOpsTestPlansResult {
+  testPlans: AzureDevOpsTestPlan[];
+  totalCount: number;
+  skip: number;
+  top: number;
+}
+
+export type AzureDevOpsTestPlansResponse = ApiResponse<AzureDevOpsTestPlansResult>;
 
 export interface AzureDevOpsTestSuitesQuery {
   projectId: string;

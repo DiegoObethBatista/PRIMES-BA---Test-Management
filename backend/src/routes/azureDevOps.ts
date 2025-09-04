@@ -142,27 +142,76 @@ export function createAzureDevOpsRouter(dbManager: DatabaseManager, environment:
     }
   );
 
-  // GET /api/azure-devops/test-plans - Get test plans for a project
+  // GET /api/azure-devops/test-plans - Get test plans for a project with search and pagination
   router.get(
     '/test-plans',
     [
-      query('projectId').isString().notEmpty().withMessage('Project ID is required'),
+      query('projectId').optional().isString().withMessage('Project ID must be a string'),
+      query('testPlanId').optional().isInt({ min: 1 }).withMessage('Test Plan ID must be a positive integer'),
+      query('search').optional().isString().withMessage('Search query must be a string'),
+      query('skip').optional().isInt({ min: 0 }).withMessage('Skip must be a non-negative integer'),
+      query('top').optional().isInt({ min: 1, max: 100 }).withMessage('Top must be between 1 and 100'),
     ],
     handleValidation,
     async (req: Request, res: Response<AzureDevOpsTestPlansResponse>) => {
       try {
-        const { projectId } = req.query as { projectId: string };
-        
-        const testPlans = await azureDevOpsService.getTestPlans(projectId);
+        const { 
+          projectId, 
+          testPlanId, 
+          search, 
+          skip = '0', 
+          top = '50' 
+        } = req.query as { 
+          projectId?: string; 
+          testPlanId?: string; 
+          search?: string; 
+          skip?: string; 
+          top?: string; 
+        };
+
+        // If specific test plan ID is requested, fetch that test plan
+        if (testPlanId) {
+          const testPlan = await azureDevOpsService.getTestPlan(projectId || environment.ADO_PROJECT, parseInt(testPlanId));
+          
+          logger.info('Retrieved specific Azure DevOps test plan', { 
+            projectId: projectId || environment.ADO_PROJECT, 
+            testPlanId 
+          });
+
+          res.json({
+            success: true,
+            data: {
+              testPlans: testPlan ? [testPlan] : [],
+              totalCount: testPlan ? 1 : 0,
+              skip: parseInt(skip),
+              top: parseInt(top),
+            },
+          });
+          return;
+        }
+
+        // Otherwise, get all test plans with optional search and pagination
+        const result = await azureDevOpsService.getTestPlans(
+          projectId || environment.ADO_PROJECT,
+          {
+            ...(search && { search }),
+            skip: parseInt(skip),
+            top: parseInt(top),
+          }
+        );
         
         logger.info('Retrieved Azure DevOps test plans', { 
-          projectId, 
-          count: testPlans.length 
+          projectId: projectId || environment.ADO_PROJECT, 
+          search,
+          skip,
+          top,
+          count: result.testPlans.length,
+          totalCount: result.totalCount
         });
 
         res.json({
           success: true,
-          data: testPlans,
+          data: result,
         });
       } catch (error) {
         logger.error('Failed to retrieve Azure DevOps test plans', { 

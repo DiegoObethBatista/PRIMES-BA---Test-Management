@@ -113,7 +113,7 @@ export const TestPlanImport: React.FC<TestPlanImportProps> = ({
       const response = await apiClient.getAzureDevOpsTestPlans(projectId);
       
       if (response.success && response.data) {
-        setTestPlans(response.data.map(plan => ({
+        setTestPlans(response.data.testPlans.map(plan => ({
           ...plan,
           selected: false,
           selectedSuites: new Set<number>(),
@@ -240,9 +240,25 @@ export const TestPlanImport: React.FC<TestPlanImportProps> = ({
     }),
     createTableColumn<TestPlanWithSuites>({
       columnId: 'owner',
-      compare: (a, b) => a.owner.displayName.localeCompare(b.owner.displayName),
+      compare: (a, b) => {
+        const aOwner = a.owner?.displayName || 'Unknown';
+        const bOwner = b.owner?.displayName || 'Unknown';
+        return aOwner.localeCompare(bOwner);
+      },
       renderHeaderCell: () => 'Owner',
-      renderCell: (plan) => plan.owner.displayName,
+      renderCell: (plan) => plan.owner?.displayName || 'Unknown',
+    }),
+    createTableColumn<TestPlanWithSuites>({
+      columnId: 'areaPath',
+      compare: (a, b) => (a.areaPath || '').localeCompare(b.areaPath || ''),
+      renderHeaderCell: () => 'Area Path',
+      renderCell: (plan) => plan.areaPath || 'Not specified',
+    }),
+    createTableColumn<TestPlanWithSuites>({
+      columnId: 'iteration',
+      compare: (a, b) => (a.iteration || '').localeCompare(b.iteration || ''),
+      renderHeaderCell: () => 'Iteration',
+      renderCell: (plan) => plan.iteration || 'Not specified',
     }),
     createTableColumn<TestPlanWithSuites>({
       columnId: 'state',

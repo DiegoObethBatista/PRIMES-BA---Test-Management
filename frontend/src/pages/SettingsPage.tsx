@@ -12,7 +12,8 @@ import {
   Dropdown,
   Option,
 } from '@fluentui/react-components';
-import { Save24Regular, CheckmarkCircle24Regular, ErrorCircle24Regular, ArrowClockwise24Regular, ArrowLeft24Regular } from '@fluentui/react-icons';
+import { Save24Regular, CheckmarkCircle24Regular, ErrorCircle24Regular, ArrowClockwise24Regular } from '@fluentui/react-icons';
+import { AppNavigation } from '../components/AppNavigation';
 import styles from './SettingsPage.module.css';
 
 interface ConnectionTest {
@@ -126,6 +127,13 @@ export function SettingsPage() {
           projects: projects
         });
         setAvailableProjects(projects);
+        
+        // Save successful connection settings to localStorage for Azure DevOps page
+        localStorage.setItem('azureDevOpsSettings', JSON.stringify({
+          adoOrgUrl: settings.adoOrgUrl,
+          adoProject: settings.adoProject,
+          adoPat: settings.adoPat,
+        }));
       } else {
         setConnectionTest({
           success: false,
@@ -191,14 +199,11 @@ export function SettingsPage() {
 
   return (
     <div className={styles.container}>
-      <Button 
-        icon={<ArrowLeft24Regular />} 
-        onClick={() => navigate('/')}
-        appearance="subtle"
-        style={{ marginBottom: '16px' }}
-      >
-        Back to Home
-      </Button>
+      <AppNavigation 
+        title="Settings"
+        showBackButton={true}
+        onBack={() => navigate('/dashboard')}
+      />
       
       <div className={styles.header}>
         <Title1>Settings</Title1>
