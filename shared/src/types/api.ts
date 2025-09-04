@@ -3,6 +3,14 @@
  */
 
 import { TestCase, TestRun, TokenUsage } from './database';
+import { 
+  AzureDevOpsProject, 
+  AzureDevOpsTestPlan, 
+  AzureDevOpsTestSuite, 
+  AzureDevOpsConnectionTest,
+  AzureDevOpsImportRequest,
+  AzureDevOpsImportResult
+} from './azureDevOps';
 
 // API Response wrapper
 export interface ApiResponse<T = unknown> {
@@ -81,3 +89,29 @@ export interface HealthCheckResponse extends ApiResponse {
     uptime: number;
   };
 }
+
+// Azure DevOps API Types
+export interface AzureDevOpsConnectionRequest {
+  orgUrl: string;
+  project: string;
+  pat: string;
+}
+
+export type AzureDevOpsConnectionResponse = ApiResponse<AzureDevOpsConnectionTest>;
+
+export type AzureDevOpsProjectsResponse = ApiResponse<AzureDevOpsProject[]>;
+
+export interface AzureDevOpsTestPlansQuery {
+  projectId: string;
+}
+
+export type AzureDevOpsTestPlansResponse = ApiResponse<AzureDevOpsTestPlan[]>;
+
+export interface AzureDevOpsTestSuitesQuery {
+  projectId: string;
+  testPlanId: number;
+}
+
+export type AzureDevOpsTestSuitesResponse = ApiResponse<AzureDevOpsTestSuite[]>;
+
+export type AzureDevOpsImportResponse = ApiResponse<AzureDevOpsImportResult>;

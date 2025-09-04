@@ -9,6 +9,7 @@ import { errorHandler, notFoundHandler } from './middleware/error';
 import { createHealthRouter } from './routes/health';
 import { createTestCasesRouter } from './routes/testCases';
 import { createTestsRouter } from './routes/tests';
+import { createAzureDevOpsRouter } from './routes/azureDevOps';
 import { logger } from './utils/logger';
 
 /**
@@ -65,6 +66,7 @@ export function createApp(config: Environment, dbManager: DatabaseManager): expr
   app.use('/api', createHealthRouter(dbManager));
   app.use('/api/cases', createTestCasesRouter(dbManager));
   app.use('/api/tests', createTestsRouter(dbManager));
+  app.use('/api/azure-devops', createAzureDevOpsRouter(dbManager, config));
 
   // 404 handler for unmatched routes
   app.use(notFoundHandler);

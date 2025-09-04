@@ -1,4 +1,13 @@
-import type { ApiResponse } from '@primes-ba/shared';
+import type { 
+  ApiResponse,
+  AzureDevOpsConnectionRequest,
+  AzureDevOpsConnectionResponse,
+  AzureDevOpsProjectsResponse,
+  AzureDevOpsTestPlansResponse,
+  AzureDevOpsTestSuitesResponse,
+  AzureDevOpsImportRequest,
+  AzureDevOpsImportResponse
+} from '@primes-ba/shared';
 import { getConfig } from '../utils/config';
 
 /**
@@ -98,6 +107,43 @@ class ApiClient {
    */
   async healthCheck(): Promise<ApiResponse<{ status: string; uptime: number }>> {
     return this.get('/health');
+  }
+
+  // Azure DevOps API methods
+
+  /**
+   * Test Azure DevOps connection
+   */
+  async testAzureDevOpsConnection(config: AzureDevOpsConnectionRequest): Promise<AzureDevOpsConnectionResponse> {
+    return this.post('/azure-devops/test-connection', config);
+  }
+
+  /**
+   * Get Azure DevOps projects
+   */
+  async getAzureDevOpsProjects(): Promise<AzureDevOpsProjectsResponse> {
+    return this.get('/azure-devops/projects');
+  }
+
+  /**
+   * Get Azure DevOps test plans
+   */
+  async getAzureDevOpsTestPlans(projectId: string): Promise<AzureDevOpsTestPlansResponse> {
+    return this.get(`/azure-devops/test-plans?projectId=${encodeURIComponent(projectId)}`);
+  }
+
+  /**
+   * Get Azure DevOps test suites
+   */
+  async getAzureDevOpsTestSuites(projectId: string, testPlanId: number): Promise<AzureDevOpsTestSuitesResponse> {
+    return this.get(`/azure-devops/test-suites?projectId=${encodeURIComponent(projectId)}&testPlanId=${testPlanId}`);
+  }
+
+  /**
+   * Import test cases from Azure DevOps
+   */
+  async importFromAzureDevOps(importRequest: AzureDevOpsImportRequest): Promise<AzureDevOpsImportResponse> {
+    return this.post('/azure-devops/import', importRequest);
   }
 }
 
