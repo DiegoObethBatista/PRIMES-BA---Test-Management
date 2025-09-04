@@ -4,6 +4,7 @@ import { FluentProvider, webLightTheme } from '@fluentui/react-components';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { HomePage } from './pages/HomePage';
 import { SettingsPage } from './pages/SettingsPage';
+import { AzureDevOpsPage } from './pages/AzureDevOpsPage';
 import { validateConfig } from './utils/config';
 
 // Create a query client for React Query
@@ -36,6 +37,7 @@ export function App(): JSX.Element {
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/azure-devops" element={<AzureDevOpsPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Router>

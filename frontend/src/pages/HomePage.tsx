@@ -8,7 +8,7 @@ import {
   Button,
   Badge,
 } from '@fluentui/react-components';
-import { CheckmarkCircle24Regular, Home24Regular } from '@fluentui/react-icons';
+import { CheckmarkCircle24Regular, Home24Regular, CloudRegular } from '@fluentui/react-icons';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '../services/api';
 import { Loading } from '../components/Loading';
@@ -75,6 +75,10 @@ export function HomePage(): JSX.Element {
 
   const handleNavigateToSettings = (): void => {
     navigate('/settings');
+  };
+
+  const handleNavigateToAzureDevOps = (): void => {
+    navigate('/azure-devops');
   };
 
   if (isLoading) {
@@ -171,6 +175,25 @@ export function HomePage(): JSX.Element {
                 <div style={{ marginTop: '16px' }}>
                   <Button appearance="primary">
                     Open Settings
+                  </Button>
+                </div>
+              </div>
+            }
+          />
+        </Card>
+
+        <Card className={styles.statusCard} onClick={handleNavigateToAzureDevOps}>
+          <CardPreview>
+            <CloudRegular className={styles.icon} />
+          </CardPreview>
+          <CardHeader
+            header={<Text weight="semibold">Azure DevOps Integration</Text>}
+            description={
+              <div>
+                <Text>Connect to Azure DevOps and import test cases from your test plans.</Text>
+                <div style={{ marginTop: '16px' }}>
+                  <Button appearance="primary">
+                    Azure DevOps
                   </Button>
                 </div>
               </div>
